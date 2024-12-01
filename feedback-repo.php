@@ -63,6 +63,20 @@ SQL_CREATE_TABLE;
       );
     }
 
+    /*
+     * Type for associative $errors associative array (JSON notation):
+     * {
+     *   "name type": string | null,
+     *   "rating type": string | null,
+     *   "rating value": string | null,
+     *   "email type": string | null,
+     *   "email length": string | null,
+     *   "name length": string | null,
+     *   "email @": string | null,
+     *   "email domain": string | null
+     * }
+     * */
+
     // I personally prefer static, stateless functions, when possible. 
      private static function validate_string($field_name, $field, $errors) {
       // Store result of strlen in variable
@@ -74,12 +88,12 @@ SQL_CREATE_TABLE;
       // I don't know if PHP has same optimisation, so I am doing that manually.
       $len = strlen($field);
       if ($len === 0) {
-         array_push($errors, "$field_name is required");
+         $errors["$field_name length"] = "$field_name is required";
       } elseif ($len > 25) {
         // because of VARCHAR limit in table.
 	// Better to return validation error visible to user
 	// rather than letting MySQL throw exception
-        array_push($errors, "$field_name must be 25 characters or less");
+        $errors["$field_name length"] = "$field_name must be 25 characters or less";
       }
       return $errors;
     }
@@ -95,7 +109,7 @@ SQL_CREATE_TABLE;
       if (is_string($name)) {
         $errors = self::validate_string("name", $name, $errors);
       } else {
-        array_push($errors, "name must be string");
+        $errors["name type"] = "name must be string";
       }
 
       if (is_string($email)) {
@@ -111,24 +125,24 @@ SQL_CREATE_TABLE;
         // which should be in every email.
         $errors = self::validate_string("email", $email, $errors);
 	if (!str_contains($email, "@")) {
-          array_push($errors, "email must have an @ sign");
+          $errors["email @"] = "\nemail must have an @ sign";
 	}
 	if (!str_contains($email, ".")) {
-          array_push($errors, "email must have a domain like .com");
+          $errors["email domain"] = "email must have a domain like .com";
 	}
       } else {
         // email is not a string
-        array_push($errors, "email must be string");
+	$errors["email type"] = "email must be string";
       }
 
       if (is_numeric($rating)) {
         // Check that rating is between 0 and 5
         if ($rating < 0 || $rating > 5) {
-	  array_push($errors, "rating must be between 0 and 5");
+	  $errors["rating value"] = "rating must be between 0 and 5";
         }
       } else {
         // rating must be integer but it is not
-        array_push($errors, "rating must be integer");
+	$errors["rating type"] = "rating must be between 0 and 5";
       }
 
       return $errors;
@@ -142,12 +156,12 @@ SQL_CREATE_TABLE;
     }
 
     public function insert($name, $email, $rating) {
-      $rating = intval($rating, 1);
+      $rating = intval($rating, 10);
       // escape string arguments for security
-      $name = htmlspecialchars($name);
+      $name = mysql_real_escape_string($name);
       // normalise email to lowercase as well
       // so hello@example.com is same as hElLo@eXaMpLe.com
-      $email = htmlspecialchars($email);
+      $email = mysql_real_escape_string($email);
       $email = strtolower($email);
 
       // Validate arguments
@@ -172,7 +186,4 @@ SQL_CREATE_TABLE;
       return [];
     }
   }
-
-  $obj = new FeedbackRepo();
-  $obj->insert("Hello", "h@email.com", 3);
 ?>
