@@ -158,10 +158,10 @@ SQL_CREATE_TABLE;
     public function insert($name, $email, $rating) {
       $rating = intval($rating, 10);
       // escape string arguments for security
-      $name = mysql_real_escape_string($name);
+      $name = $this->conn->real_escape_string($name);
       // normalise email to lowercase as well
       // so hello@example.com is same as hElLo@eXaMpLe.com
-      $email = mysql_real_escape_string($email);
+      $email = $this->conn->real_escape_string($email);
       $email = strtolower($email);
 
       // Validate arguments
