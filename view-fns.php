@@ -11,12 +11,27 @@
   // I know PHP HTML templating systems exist and appreciate them, but I want to be low on dependencies
   // because I don't know or control the PHP environment where this script will run.
   class ViewFns {
+    private static function rating_button($value) {
+      return <<<RATING_BUTTON
+<input type="radio" 
+       id="rating" 
+       name="rating" 
+       value="$value"
+       class="form-check-input position-static" />
+RATING_BUTTON;
+    }
 
-    public static function open_body($title) {
+    public static function rating_form($title) {
       // escape $title to make it safe to include in HTML
       $title = htmlspecialchars($title);
 
-      return <<<OPEN_BODY
+      $rating1 = self::rating_button(1);
+      $rating2 = self::rating_button(2);
+      $rating3 = self::rating_button(3);
+      $rating4 = self::rating_button(4);
+      $rating5 = self::rating_button(5);
+
+      return <<<RATING_FORM
 
 <!DOCTYPE html>
 <html lang="en">
@@ -30,64 +45,35 @@
     <title>$title</title>
   </head>
   <body>
+    <form action="feedback-received.php" method="POST">
+      <p>We're all ears! How was it for you? Rate us from 1 (awful) to 5 (awesome).</p>
+      <label for="full_name">Full name</label>
+      <input id="full_name" 
+	     name="full_name" 
+             class="form-control"
+             required />
 
-OPEN_BODY;
-    }
+      <!-- We can and should rely on browser's built-in email validation
+           for a user experience consistent with what the user expects from other sites. -->
+      <label for="email">Email</label>
+      <input type="email"
+             id="email" 
+	     name="email" 
+             class="form-control"
+             required />
 
-    private static function rating_button($value) {
-      return <<<RATING_BUTTON
-<input type="radio" 
-       id="rating" 
-       name="rating" 
-       value="$value"
-       class="form-check-input position-static" />
-RATING_BUTTON;
-    }
+      $rating1
+      $rating2
+      $rating3
+      $rating4
+      $rating5
 
-    public static function rating_form() {
-      $rating1 = self::rating_button(1);
-      $rating2 = self::rating_button(2);
-      $rating3 = self::rating_button(3);
-      $rating4 = self::rating_button(4);
-      $rating5 = self::rating_button(5);
-      return <<<RATING_FORM
-
-<form action="http://localhost/circle/feedback-received.php" method="POST">
-  <p>We're all ears! How was it for you? Rate us from 1 (awful) to 5 (awesome).</p>
-  <label for="full_name">Full name</label>
-  <input id="full_name" 
-	 name="full_name" 
-         class="form-control"
-         required />
-
-  <!-- We can and should rely on browser's built-in email validation
-       for a user experience consistent with what the user expects from other sites. -->
-  <label for="email">Email</label>
-  <input type="email"
-         id="email" 
-	 name="email" 
-         class="form-control"
-         required />
-
-  $rating1
-  $rating2
-  $rating3
-  $rating4
-  $rating5
-
-  <input type="submit" value="Submit Your Rating" />
-</form>
-
-RATING_FORM;
-    }
-
-    public static function close_body() {
-     return <<<CLOSE_BODY
-
+      <input type="submit" value="Submit Your Rating" />
+    </form>
   </body>
 </html>
 
-CLOSE_BODY;
+RATING_FORM;
     }
   }
 
